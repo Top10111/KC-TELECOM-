@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+dist/
+frontend/dist/
+build/
+
+# Environment files (never commit real secrets)
+.env
+.env.local
+.env.*.local
+!.env.example
+!frontend/.env.example
+
+# Prisma
+prisma/*.db
+prisma/dev.db*
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Caches
+.cache/
+.npm/
+.eslintcache
+*.tsbuildinfo
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Test / coverage output
+coverage/
+
+# Docker
+docker-compose.override.yml

@@ -1,3 +1,4 @@
+modules = ["postgresql-16"]
 [nix]
 channel = "stable-25_05"
 
