@@ -9,7 +9,7 @@ expertMode = true
 
 [userenv.shared]
 ADMIN_EMAIL = "admin@kctelecom.com"
-ADMIN_PHONE = "08000000000"
+ADMIN_PHONE = "07031336258"
 JWT_EXPIRES_IN = "1d"
 NODE_ENV = "development"
 PORT = "3000"
