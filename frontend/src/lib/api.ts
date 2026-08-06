@@ -146,6 +146,24 @@ export const adminPinStockApi = {
   getInventory: () => request<InventorySummary>('/admin/pin-stock/inventory'),
 };
 
+// ---- vendor airtime purchase ------------------------------------
+
+export interface BuyAirtimePayload {
+  network: string;
+  phone: string;
+  amount: number;
+}
+
+export const airtimeApi = {
+  purchase: (payload: BuyAirtimePayload) =>
+    request<import('../types').AirtimePurchase>('/vendor/airtime/purchase', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  myPurchases: () =>
+    request<import('../types').AirtimePurchase[]>('/vendor/airtime/purchases'),
+};
+
 // ---- reports -------------------------------------------------
 
 export const reportsApi = {

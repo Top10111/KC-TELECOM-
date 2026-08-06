@@ -56,9 +56,10 @@ model User {
   role          Role      @default(VENDOR)
   status        UserStatus @default(ACTIVE)
 
-  wallet        Wallet?
-  purchases     PinPurchase[]
-  batchesCreated PinBatch[] @relation("CreatedBatches")
+  wallet           Wallet?
+  purchases        PinPurchase[]
+  batchesCreated   PinBatch[]        @relation("CreatedBatches")
+  airtimePurchases AirtimePurchase[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -133,6 +134,21 @@ model RechargePin {
 
   @@index([batchId, status])
   @@map("recharge_pins")
+}
+
+model AirtimePurchase {
+  id        String         @id @default(uuid())
+  vendorId  String
+  vendor    User           @relation(fields: [vendorId], references: [id])
+  network   Network
+  phone     String
+  amount    Decimal        @db.Decimal(14, 2)
+  reference String         @unique
+  status    PurchaseStatus @default(COMPLETED)
+
+  createdAt DateTime       @default(now())
+
+  @@map("airtime_purchases")
 }
 
 model PinPurchase {

@@ -5,6 +5,7 @@ const vendorNav = [
   { to: '/vendor', label: 'Overview', end: true },
   { to: '/vendor/wallet', label: 'Wallet' },
   { to: '/vendor/buy-pins', label: 'Buy PIN Books' },
+  { to: '/vendor/buy-airtime', label: 'Buy Airtime' },
   { to: '/vendor/purchases', label: 'My Purchases' },
   { to: '/vendor/transactions', label: 'Transactions' },
 ];

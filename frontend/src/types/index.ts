@@ -126,6 +126,19 @@ export interface VendorSummary {
   purchaseCount: number;
 }
 
+export type AirtimePurchaseStatus = 'COMPLETED' | 'FAILED';
+
+export interface AirtimePurchase {
+  id: string;
+  vendorId: string;
+  network: Network;
+  phone: string;
+  amount: string; // Prisma Decimal serialized as string
+  reference: string;
+  status: AirtimePurchaseStatus;
+  createdAt: string;
+}
+
 // Matches src/common/filters/all-exceptions.filter.ts exactly.
 export interface ApiErrorBody {
   success: false;
