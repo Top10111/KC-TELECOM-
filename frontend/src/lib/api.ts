@@ -10,6 +10,7 @@ import type {
   VendorSummary,
   Wallet,
   WalletTransaction,
+  PaystackInitialization,
 } from '../types';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1';
@@ -94,6 +95,15 @@ export const walletApi = {
       method: 'POST',
       body: JSON.stringify({ amount, description }),
     }),
+  initializePaystack: (amount: number) =>
+    request<PaystackInitialization>('/wallet/paystack/initialize', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    }),
+  verifyPaystack: (reference: string) =>
+    request<{ wallet: Wallet; transaction: WalletTransaction; alreadyCredited: boolean }>(
+      `/wallet/paystack/verify/${encodeURIComponent(reference)}`,
+    ),
   // ADMIN only — confirms a pending funding transaction by reference
   confirmFunding: (reference: string) =>
     request<{ wallet: Wallet; transaction: WalletTransaction }>(

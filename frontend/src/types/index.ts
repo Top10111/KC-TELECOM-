@@ -40,7 +40,19 @@ export interface WalletTransaction {
   reference: string;
   status: WalletTxStatus;
   description: string | null;
+  provider: string | null;
+  providerReference: string | null;
+  paidAt: string | null;
+  creditedAt: string | null;
   createdAt: string;
+}
+
+export interface PaystackInitialization {
+  reference: string;
+  authorizationUrl: string;
+  accessCode?: string;
+  amount: number;
+  currency: string;
 }
 
 export interface PinBatch {

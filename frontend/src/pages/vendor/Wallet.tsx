@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { walletApi, ApiError } from '../../lib/api';
 import { formatNaira, formatDate } from '../../lib/format';
 import { Banner, Button, Card, EmptyState, Input, Spinner, StatCard, Badge } from '../../components/ui';
@@ -11,6 +12,8 @@ const statusTone: Record<WalletTransaction['status'], 'green' | 'amber' | 'red'>
 };
 
 export default function Wallet() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [wallet, setWallet] = useState<WalletType | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +42,38 @@ export default function Wallet() {
     loadAll();
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const reference = params.get('reference') ?? params.get('trxref');
+    if (!reference) return;
+
+    let active = true;
+    setIsSubmitting(true);
+    walletApi
+      .verifyPaystack(reference)
+      .then(({ transaction }) => {
+        if (!active) return;
+        if (transaction.status !== 'SUCCESS') {
+          throw new Error(transaction.description ?? 'Paystack payment was not successful');
+        }
+        setSuccessMsg('Paystack payment verified. Your wallet balance has been updated.');
+        return loadAll();
+      })
+      .catch((err) => {
+        if (active) setFormError(err instanceof ApiError ? err.message : String(err));
+      })
+      .finally(() => {
+        if (active) {
+          setIsSubmitting(false);
+          navigate('/vendor/wallet', { replace: true });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [location.search, navigate]);
+
   const onFund = async (e: FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -52,13 +87,10 @@ export default function Wallet() {
 
     setIsSubmitting(true);
     try {
-      const tx = await walletApi.fund(numericAmount, description || undefined);
-      setSuccessMsg(
-        `Funding request submitted (ref: ${tx.reference}). It is PENDING until an admin confirms it — your balance will update once confirmed.`,
-      );
+      const payment = await walletApi.initializePaystack(numericAmount);
       setAmount('');
       setDescription('');
-      await loadAll();
+      window.location.assign(payment.authorizationUrl);
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'Failed to submit funding request');
     } finally {
@@ -78,7 +110,7 @@ export default function Wallet() {
       <Card>
         <h2 className="text-sm font-semibold text-slate-900">Fund wallet</h2>
         <p className="mt-1 text-xs text-slate-500">
-          Funding requests are created as PENDING and must be confirmed by an admin before your balance updates.
+          Pay securely with Paystack. Your balance updates only after the payment is verified by the server.
         </p>
         <form onSubmit={onFund} className="mt-4 grid gap-4 sm:grid-cols-2">
           {formError && (
@@ -100,15 +132,16 @@ export default function Wallet() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
-          <Input
-            label="Description (optional)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g. Bank transfer funding"
-          />
+            <Input
+              label="Description (optional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g. Monthly wallet funding"
+              disabled
+            />
           <div className="sm:col-span-2">
             <Button type="submit" isLoading={isSubmitting}>
-              Submit funding request
+              Continue to Paystack
             </Button>
           </div>
         </form>

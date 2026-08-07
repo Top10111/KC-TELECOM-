@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -27,6 +28,26 @@ export class WalletController {
   @Post('fund')
   initiateFunding(@CurrentUser('id') userId: string, @Body() dto: FundWalletDto) {
     return this.walletService.initiateFunding(userId, dto);
+  }
+
+  @Roles('VENDOR')
+  @Post('paystack/initialize')
+  initializePaystackFunding(
+    @CurrentUser('id') userId: string,
+    @Body() dto: FundWalletDto,
+    @Req() request: Request,
+  ) {
+    const configuredCallback = process.env.PAYSTACK_CALLBACK_URL;
+    const forwardedProtocol = String(request.headers['x-forwarded-proto'] ?? request.protocol).split(',')[0];
+    const forwardedHost = String(request.headers['x-forwarded-host'] ?? request.get('host')).split(',')[0];
+    const callbackUrl = configuredCallback ?? `${forwardedProtocol}://${forwardedHost}/vendor/wallet`;
+    return this.walletService.initializePaystackFunding(userId, dto.amount, callbackUrl);
+  }
+
+  @Roles('VENDOR')
+  @Get('paystack/verify/:reference')
+  verifyPaystackFunding(@Param('reference') reference: string) {
+    return this.walletService.verifyPaystackFunding(reference);
   }
 
   /**

@@ -91,9 +91,15 @@ model WalletTransaction {
   reference     String         @unique
   status        WalletTxStatus @default(PENDING)
   description   String?
+  provider      String?
+  providerReference String?
+  providerResponse  Json?
+  paidAt        DateTime?
+  creditedAt    DateTime?
 
   createdAt     DateTime       @default(now())
 
+  @@index([provider, providerReference])
   @@map("wallet_transactions")
 }
 
