@@ -12,7 +12,7 @@ sales/profit reporting.
 ## Data model (prisma/schema.prisma)
 - **User** — `ADMIN` or `VENDOR`, one wallet each.
 - **Wallet / WalletTransaction** — balance plus an auditable ledger of every FUNDING/DEBIT.
-- **PinBatch** — a "book" of PINs for one network + denomination, with `costPrice` (what KC Telecom paid) and `sellingPrice` (what vendors pay). `availableQuantity`/`totalQuantity` are always derived from real `RechargePin` rows, never hand-edited.
+- **PinBatch** — a "book" of PINs for one network + denomination, with `costPrice` (what KC Telecom paid) and `sellingPrice` (what vendors pay). `availableQuantity`/`totalQuantity` are always de[...]
 - **RechargePin** — one physical PIN (serial + code), `AVAILABLE` or `SOLD`.
 - **PinPurchase** — one vendor order: quantity, price/cost snapshot at time of sale, `totalProfit`, linked to the exact PINs allocated.
 
@@ -56,10 +56,16 @@ API is served under `http://localhost:3000/api/v1`; frontend dev server under `h
    bulk-uploads the actual PIN codes into it (`POST /admin/pin-stock/batches/:id/pins`).
 2. **Vendor** self-registers (`POST /auth/register`, always creates role `VENDOR`,
    with an empty wallet auto-created).
-3. **Vendor** requests wallet funding (`POST /wallet/fund`) → gets a
-   reference → an **Admin** confirms it (`POST /wallet/fund/:reference/confirm`),
-   which atomically credits the wallet. (A payment gateway webhook can call
-   the same confirm logic later — see `wallet.service.ts`.)
+3. **Vendor** requests wallet funding — the project integrates Paystack for
+   wallet funding. The typical flow is:
+
+   - Vendor calls `POST /wallet/fund` (authenticated) with `{ amount, description }` to create a funding reference.
+   - Backend returns a payment initialization payload (e.g. Paystack `authorization_url` or `reference`) which the frontend uses to open the Paystack Checkout.
+   - The customer completes payment in Paystack's checkout UI.
+   - Paystack notifies the backend via a webhook and/or the frontend can prompt the backend to verify the transaction using Paystack's `verify transaction` endpoint (`GET /wallet/fund/:reference/verify` or equivalent server endpoint).
+   - On successful verification, the server calls the same internal confirm logic used previously by the admin (the existing `WalletService.confirmFunding`), which atomically credits the vendor's wallet and records a `FUNDING` WalletTransaction.
+
+   This removes the need for manual admin confirmation in production — payment success drives the confirmation.
 4. **Vendor** browses available stock (`GET /vendor/pins/stock`) and buys
    PINs (`POST /vendor/pins/purchase`). This single DB transaction: checks
    balance and stock, allocates specific PIN rows, marks them `SOLD`, debits
@@ -73,7 +79,7 @@ API is served under `http://localhost:3000/api/v1`; frontend dev server under `h
 
 ## Notes on production-hardening (deliberately out of scope for this MVP)
 - **PIN code encryption at rest** — `pinCode` is stored plaintext for now; encrypt with a KMS-backed key before going live.
-- **Payment gateway** — wallet funding is admin/webhook-confirmed by design (no gateway keys assumed); wire Paystack/Flutterwave into `WalletService.confirmFunding` behind signature verification.
+- **Payment gateway** — Paystack wallet funding is integrated. The server implements server-side verification with Paystack and should be configured with the Paystack secret key and a reachable webhook endpoint. See `docs/DEPLOYMENT.md` and `docs/PRODUCTION_CHECKLIST.md` for required environment variables and production checklist items.
 - **Concurrency** — the purchase transaction runs at `Serializable` isolation and surfaces a `409` for the caller to retry on write conflicts under heavy concurrent load on the same batch.
 - **Rate limiting, request logging, and refresh tokens** are not yet included.
 
