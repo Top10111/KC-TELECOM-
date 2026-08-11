@@ -1,33 +1,41 @@
-import { Body, Controller, Get, Header, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { DataService } from './data.service';
-import { BuyDataDto } from './dto/buy-data.dto';
-import { Request } from 'express';
+import { CreateDataSubscriptionDto } from './dto/create-data-subscription.dto';
 
-@Controller('vendor/data')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('VENDOR')
+@Controller('vendor/data')
 export class DataController {
   constructor(private dataService: DataService) {}
 
+  /**
+   * POST /vendor/data/purchase
+   * Vendor purchases a data subscription.
+   */
   @Post('purchase')
-  purchase(@CurrentUser('id') vendorId: string, @Body() dto: BuyDataDto) {
+  async purchase(@CurrentUser('id') vendorId: string, @Body() dto: CreateDataSubscriptionDto) {
     return this.dataService.purchase(vendorId, dto);
   }
 
-  @Get('history')
-  history(@CurrentUser('id') vendorId: string) {
-    return this.dataService.history(vendorId);
+  /**
+   * GET /vendor/data/subscriptions
+   * List all subscriptions for the vendor.
+   */
+  @Get('subscriptions')
+  async getSubscriptions(@CurrentUser('id') vendorId: string) {
+    return this.dataService.getSubscriptions(vendorId);
   }
 
-  // Public webhook — VTU provider posts here. We protect it using a shared secret signature.
-  @Post('webhook')
-  @Header('Content-Type', 'application/json')
-  async webhook(@Body() body: any, @Req() req: Request) {
-    const signature = String(req.headers['x-vtu-signature'] ?? req.headers['x-signature'] ?? '');
-    return this.dataService.handleWebhook(body, signature);
+  /**
+   * GET /vendor/data/subscriptions/:id
+   * Get a specific subscription.
+   */
+  @Get('subscriptions/:id')
+  async getSubscription(@CurrentUser('id') vendorId: string, @Param('id') subscriptionId: string) {
+    return this.dataService.getSubscriptionById(vendorId, subscriptionId);
   }
 }
