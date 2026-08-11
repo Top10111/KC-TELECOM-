@@ -46,6 +46,12 @@ enum PurchaseStatus {
   FAILED
 }
 
+enum DataSubscriptionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
@@ -56,10 +62,11 @@ model User {
   role          Role      @default(VENDOR)
   status        UserStatus @default(ACTIVE)
 
-  wallet           Wallet?
-  purchases        PinPurchase[]
-  batchesCreated   PinBatch[]        @relation("CreatedBatches")
-  airtimePurchases AirtimePurchase[]
+  wallet                Wallet?
+  purchases             PinPurchase[]
+  batchesCreated        PinBatch[]        @relation("CreatedBatches")
+  airtimePurchases      AirtimePurchase[]
+  dataSubscriptions     DataSubscription[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -155,6 +162,27 @@ model AirtimePurchase {
   createdAt DateTime       @default(now())
 
   @@map("airtime_purchases")
+}
+
+model DataSubscription {
+  id            String                  @id @default(uuid())
+  vendorId      String
+  vendor        User                    @relation(fields: [vendorId], references: [id])
+  network       Network
+  phone         String
+  plan          String
+  amount        Decimal                 @db.Decimal(14, 2)
+  reference     String                  @unique
+  status        DataSubscriptionStatus  @default(PENDING)
+  provider      String?
+  providerReference String?
+  providerResponse  Json?
+  paidAt        DateTime?
+
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  @@map("data_subscriptions")
 }
 
 model PinPurchase {
