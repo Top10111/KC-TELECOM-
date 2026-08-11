@@ -23,7 +23,7 @@ export class DataController {
 
   /**
    * GET /vendor/data/subscriptions
-   * List all subscriptions for the vendor.
+   * List all data subscriptions for the vendor.
    */
   @Get('subscriptions')
   async getSubscriptions(@CurrentUser('id') vendorId: string) {
@@ -32,7 +32,7 @@ export class DataController {
 
   /**
    * GET /vendor/data/subscriptions/:id
-   * Get a specific subscription.
+   * Get a specific subscription by ID.
    */
   @Get('subscriptions/:id')
   async getSubscription(@CurrentUser('id') vendorId: string, @Param('id') subscriptionId: string) {
