@@ -11,7 +11,7 @@ RUN npm install
 # Copy source and build
 COPY tsconfig.json nest-cli.json ./
 COPY src ./src
-RUN npx prisma generate
+RUN npx --no-install prisma generate
 RUN npm run build
 
 # ---------- Stage 2: production runtime ----------
@@ -44,4 +44,4 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=5 \
 
 # Apply migrations, then start the API.
 # "migrate deploy" is prod-safe: it only applies existing migrations, no prompts, no schema drift.
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "npx --no-install prisma migrate deploy && node dist/main"]
