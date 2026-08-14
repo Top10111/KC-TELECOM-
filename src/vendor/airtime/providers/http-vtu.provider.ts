@@ -26,10 +26,10 @@ export class HttpVtuProvider implements VtuProvider {
     return this._post('/purchase', params);
   }
 
-+  async purchaseData(params: VtuPurchaseParams & { plan?: string }): Promise<VtuPurchaseResult> {
-+    return this._post('/purchase/data', params);
-+  }
-+
+  async purchaseData(params: VtuPurchaseParams & { plan?: string }): Promise<VtuPurchaseResult> {
+    return this._post('/purchase/data', params);
+  }
+
    private async _post(path: string, params: any): Promise<VtuPurchaseResult> {
      if (!this.baseUrl) {
        return { success: false, message: 'VTU_BASE_URL not configured' };

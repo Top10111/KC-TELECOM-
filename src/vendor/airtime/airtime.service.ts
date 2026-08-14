@@ -42,7 +42,7 @@ export class AirtimeService {
             phone: dto.phone,
             amount: dto.amount,
             reference,
-            status: 'PENDING',
+            status: 'COMPLETED',
           },
         });
 
@@ -56,7 +56,7 @@ export class AirtimeService {
             balanceBefore,
             balanceAfter: newBalance,
             reference,
-            status: 'PENDING',
+            status: 'SUCCESS',
             description: `Airtime purchase — ${dto.network} ₦${dto.amount} → ${dto.phone}`,
           },
         });
@@ -133,7 +133,7 @@ export class AirtimeService {
       const refundTx = await tx.walletTransaction.create({
         data: {
           walletId: wallet.id,
-          type: 'CREDIT',
+          type: 'REFUND',
           amount: dto.amount,
           balanceBefore: before,
           balanceAfter: after,

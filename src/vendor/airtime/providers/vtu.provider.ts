@@ -15,5 +15,5 @@ export interface VtuPurchaseResult {
 export interface VtuProvider {
   name?: string;
   purchaseAirtime(params: VtuPurchaseParams): Promise<VtuPurchaseResult>;
-+  purchaseData?(params: VtuPurchaseParams & { plan?: string }): Promise<VtuPurchaseResult>;
+  purchaseData?(params: VtuPurchaseParams & { plan?: string }): Promise<VtuPurchaseResult>;
 }

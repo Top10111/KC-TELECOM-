@@ -1,5 +1,4 @@
 import { IsEnum, IsNumber, IsString, Matches, Min } from 'class-validator';
-import type { Network } from '../../../prisma/schema';
 
 export class BuyDataDto {
   @IsEnum(['MTN', 'AIRTEL', 'GLO', 'NINE_MOBILE'])
